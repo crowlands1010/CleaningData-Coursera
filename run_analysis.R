@@ -7,7 +7,7 @@
 ##    average of each variable for each activity and each subject.
 
 library(dplyr)
-library(reshape2)
+library(data.table)
 
 ## Download File
 if (!file.exists("data")) {
@@ -21,14 +21,14 @@ unzip(zipfile="./data/Dataset.zip",exdir="./data")
 
 ## Read Datasets
 ## Datasets for Test
-subject_test <- read.table("./data/UCI HAR Dataset/test/subject_test.txt")
-x_test <- read.table("./data/UCI HAR Dataset/test/X_test.txt")
-y_test <- read.table("./data/UCI HAR Dataset/test/y_test.txt")
+subject_test <- read.table("./data/UCI HAR Dataset/test/subject_test.txt",sep="")
+x_test <- read.table("./data/UCI HAR Dataset/test/X_test.txt",sep="")
+y_test <- read.table("./data/UCI HAR Dataset/test/y_test.txt",sep="")
 
 ## Datasets for Train
-subject_train <- read.table("./data/UCI HAR Dataset/train/subject_train.txt")
-x_train <- read.table("./data/UCI HAR Dataset/train/X_train.txt")
-y_train <- read.table("./data/UCI HAR Dataset/train/y_train.txt")
+subject_train <- read.table("./data/UCI HAR Dataset/train/subject_train.txt",sep="")
+x_train <- read.table("./data/UCI HAR Dataset/train/X_train.txt",sep="")
+y_train <- read.table("./data/UCI HAR Dataset/train/y_train.txt",sep="")
 
 ## 1. Merges the training and the test sets to create one data set.
 testBind <- cbind(subject_test,x_test,y_test)
@@ -37,22 +37,36 @@ mergedData <- rbind(testBind,trainBind)
 
 ## 2. Extracts only the measurements on the mean and standard deviation for each measurement.
 features <- read.table("./data/UCI HAR Dataset/features.txt")
+features <- features %>% select(2) %>% t
 meanStDev <- features[grep('-(mean|std)\\(\\)', features[, 2 ]), 2]
-mergedData <- mergedData[, c(1, 2, meanStDev)]
 
 ## 3. Uses descriptive activity names to name the activities in the data set
-activities <- read.table("./data/UCI HAR Dataset/activity_labels.txt")
-mergedData[, 2] <- activities[mergedData[,2], 2]
+extract <- select(complete, matches("Subject|Activity|mean\\(\\)|std\\(\\)"))
+
 
 # 4. Appropriately labels the data set with descriptive variable names. 
-colnames(mergedData) <- c('subject','activity',gsub('\\-|\\(|\\)', '', as.character(requiredFeatures)))
-mergedData[, 2] <- as.character(mergedData[, 2])
+extract$Activity <- gsub("1", "walking", extract$Activity)
+extract$Activity <- gsub("2", "walking upstairs", extract$Activity)
+extract$Activity <- gsub("3", "walking downstairs", extract$Activity)
+extract$Activity <- gsub("4", "sitting", extract$Activity)
+extract$Activity <- gsub("5", "standing", extract$Activity)
+extract$Activity <- gsub("6", "laying", extract$Activity)
 
+names(extract) <- gsub("^f", "FFT", names(extract))
+names(extract) <- gsub("^t", "", names(extract))
+names(extract) <- gsub("-mean\\(\\)", "Mean", names(extract))
+names(extract) <- gsub("-std\\(\\)", "StdDeviation", names(extract))
+names(extract) <- gsub("BodyBody", "Body", names(extract))
+names(extract) <- gsub("BodyGyro", "AngularVelocity", names(extract))
+names(extract) <- gsub("AngularVelocityJerk", "AngularJerk", names(extract))
+names(extract) <- gsub("BodyAccJerk", "LinearJerk", names(extract))
+names(extract) <- gsub("BodyAcc", "BodyAccel", names(extract))
+names(extract) <- gsub("GravityAcc", "GravityAccel", names(extract))
+names(extract) <- gsub("-X", "XAxis", names(extract))
+names(extract) <- gsub("-Y", "YAxis", names(extract))
+names(extract) <- gsub("-Z", "ZAxis", names(extract))
 
 ## 5. From the data set in step 4, creates a second, independent tidy data set with the 
 ##    average of each variable for each activity and each subject.
-datasetMelt <- melt(mergedData,id=c('subject','activity'))
-datasetMean <- dcast(datasetMelt, subject+activity~variable,mean)
-
-write.table(datasetMean, file=file.path("tidy.csv"), row.names = TRUE, quote = FALSE)
-write.table(datasetMean, file=file.path("tidy.txt"), row.names = TRUE, quote = FALSE)
+tidyDataSet <- group_by(extract, Subject, Activity) %>% summarize_each(funs(mean))
+write.table(tidyDataSet,file="tidy.txt",row.names=TRUE)
