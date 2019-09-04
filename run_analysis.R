@@ -70,3 +70,4 @@ names(extract) <- gsub("-Z", "ZAxis", names(extract))
 ##    average of each variable for each activity and each subject.
 tidyDataSet <- group_by(extract, Subject, Activity) %>% summarize_each(funs(mean))
 write.table(tidyDataSet,file="tidy.txt",row.names=TRUE)
+write.table(tidyDataSet,file="tidy.csv",row.names=TRUE)
