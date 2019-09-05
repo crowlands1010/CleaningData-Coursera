@@ -23,10 +23,10 @@ You should create one R script called run_analysis.R that does the following:
 ## Files
 1. The codebook.md file performs a top level overview.
 2. run_analysis.R:
-  -download from web
-  -read data
-  -read mean and std. deviation
-  -tidy data
-  -export data
+  - download from web
+  - read data
+  - read mean and std. deviation
+  - tidy data
+  - export data
 3. tidy.csv is tidy comma separated
 4. tidy.txt is tidy text
