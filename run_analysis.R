@@ -69,5 +69,5 @@ names(extract) <- gsub("-Z", "ZAxis", names(extract))
 ## 5. From the data set in step 4, creates a second, independent tidy data set with the 
 ##    average of each variable for each activity and each subject.
 tidyDataSet <- group_by(extract, Subject, Activity) %>% summarize_each(funs(mean))
-write.table(tidyDataSet,file="tidy.txt",row.names=TRUE)
-write.table(tidyDataSet,file="tidy.csv",row.names=TRUE)
+write.table(tidyDataSet,file="tidy.txt",row.names=FALSE)
+write.table(tidyDataSet,file="tidy.csv",row.names=FALSE)
